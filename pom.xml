@@ -10,8 +10,15 @@
   <groupId>com.h_a_s</groupId>
   <artifactId>Healthcare_appointment_system</artifactId>
   <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
   <name>Archetype - Healthcare_appointment_system</name>
   <url>http://maven.apache.org</url>
+  <modules>
+    <module>Auth_service</module>
+    <module>Patient_service</module>
+    <module>Doctor_service</module>
+    <module>Appointment_service</module>
+  </modules>
   <build>
     <plugins>
       <plugin>
