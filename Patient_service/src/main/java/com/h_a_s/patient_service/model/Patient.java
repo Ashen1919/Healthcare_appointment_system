@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table(name = "patients")
-public class patient {
+public class Patient {
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +30,10 @@ public class patient {
 
     @Column(name = "dob", nullable = false)
     private LocalDate dob;
+
+    @Transient
+    @Enumerated(EnumType.STRING)
+    private Roles role;
 
     @Column(name = "contact", nullable = false)
     private String contact;
