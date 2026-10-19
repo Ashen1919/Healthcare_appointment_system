@@ -17,13 +17,13 @@ public class patient {
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int Id;
+    private long Id;
 
-    @Column(name = "user_id", nullable = false, unique = true)
-    private int user_id;
-
-    @Column(name = "email", nullable = false)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
+
+    @Column(name = "password_hash", nullable = false)
+    private String password;
 
     @Column(name = "name", nullable = false)
     private String name;
