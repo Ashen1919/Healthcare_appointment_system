@@ -61,10 +61,19 @@ public class PatientService {
     }
 
     // get specific patient details
-    public PatientResponseDto getOnePatient(Long id) {
+    public PatientResponseDto getPatientById(Long id) {
         Patient existingPatient = patientRepo.findById(id).orElseThrow(() ->
             new ResourceNotFoundException("Patient can't find with id: " + id));
         return modelMapper.map(existingPatient, PatientResponseDto.class);
+    }
+
+    // get logged in patient's details
+    public PatientResponseDto getCurrentPatientDetails(Principal principal) {
+        Long patientId = Long.valueOf(principal.getName());
+        Patient currentPatient = patientRepo.findById(patientId)
+                .orElseThrow(() -> new UsernameNotFoundException("Patient Not found with id " + patientId));
+
+        return modelMapper.map(currentPatient, PatientResponseDto.class);
     }
 
     // update a patient
