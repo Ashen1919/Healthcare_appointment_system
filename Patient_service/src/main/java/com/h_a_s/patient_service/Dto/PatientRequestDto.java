@@ -37,7 +37,7 @@ public class PatientRequestDto {
 
     @NotBlank(message = "Contact is required!")
     @Pattern(
-            regexp = "^(?=0[0-9]{9})$",
+            regexp = "^0[0-9]{9}$",
             message = "Please enter a valid phone number!"
     )
     private String contact;
