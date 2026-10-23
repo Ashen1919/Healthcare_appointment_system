@@ -94,6 +94,9 @@ public class DoctorService {
         currentDoctor.setContact(doctorUpdateRequestDto.getContact());
         currentDoctor.setSpecialty(doctorUpdateRequestDto.getSpecialty());
         currentDoctor.setSchedule(doctorUpdateRequestDto.getSchedule());
+        if (doctorUpdateRequestDto.getTimeOff() != null) {
+            currentDoctor.setTimeOff(doctorUpdateRequestDto.getTimeOff());
+        }
 
         Doctor saveDoctor = doctorRepo.insert(currentDoctor);
         return modelMapper.map(saveDoctor, DoctorResponseDto.class);

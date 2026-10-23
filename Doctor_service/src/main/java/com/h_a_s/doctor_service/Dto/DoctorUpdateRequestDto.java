@@ -41,4 +41,6 @@ public class DoctorUpdateRequestDto {
 
     @NotEmpty(message = "Schedule should be not empty!")
     private List<Doctor.ScheduleSlot> schedule;
+
+    private List<Doctor.TimeOff> timeOff;
 }
