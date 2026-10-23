@@ -24,9 +24,11 @@ import java.util.List;
 @Builder
 public class Doctor {
     @Id
-    private String id;
+    private Long id;
 
     private String email;
+
+    private String password;
 
     private String name;
 
