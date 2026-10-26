@@ -2,6 +2,7 @@ package com.h_a_s.doctor_service.Controllers;
 
 import com.h_a_s.doctor_service.Dto.*;
 import com.h_a_s.doctor_service.Services.DoctorService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api/v1/doctors")
 @RequiredArgsConstructor
+@Tag(name = "Doctor Controllers", description = "Controllers for doctor service")
 public class DoctorController {
     private final DoctorService doctorService;
 
