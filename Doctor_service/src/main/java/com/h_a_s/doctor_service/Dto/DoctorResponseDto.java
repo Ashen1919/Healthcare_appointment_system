@@ -17,6 +17,7 @@ public class DoctorResponseDto {
     private String name;
     private String specialty;
     private String contact;
+    private boolean active;
     private List<Doctor.ScheduleSlot> schedule;
     private List<Doctor.TimeOff> timeOff;
     private Instant createdAt;
