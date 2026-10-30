@@ -1,7 +1,11 @@
 package com.h_a_s.appointment_service.Services;
 
+import com.h_a_s.appointment_service.Client.DoctorClient;
+import com.h_a_s.appointment_service.Client.PatientClient;
 import com.h_a_s.appointment_service.Dto.AppointmentCreationDto;
 import com.h_a_s.appointment_service.Dto.AppointmentResponseDto;
+import com.h_a_s.appointment_service.Dto.Client.DoctorClientDto;
+import com.h_a_s.appointment_service.Dto.Client.PatientClientDto;
 import com.h_a_s.appointment_service.Dto.PageResponseDto;
 import com.h_a_s.appointment_service.Exceptions.ResourceNotFoundException;
 import com.h_a_s.appointment_service.Model.Appointment;
@@ -20,7 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -29,6 +35,8 @@ import java.util.List;
 public class AppointmentService {
     private final AppointmentRepo appointmentRepo;
     private final ModelMapper modelMapper;
+    private final DoctorClient doctorClient;
+    private final PatientClient patientClient;
     private static final int SLOT_MINUTES = 30;
 
     // create appointment
@@ -41,11 +49,37 @@ public class AppointmentService {
                     "Start time must align to a " + SLOT_MINUTES + "-minute slot.");
         }
 
+        LocalDateTime end = start.plusMinutes(SLOT_MINUTES);
+
+        // Verify patient exist and active
+        PatientClientDto patient = patientClient.getPatientById(dto.getPatientId());
+        if(patient == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found with id: " + dto.getPatientId());
+        }
+        if (!patient.isActive()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Patient account is inactive.");
+        }
+
+        // Verify Doctor Existence & Status
+        DoctorClientDto doctor = doctorClient.getDoctorById(dto.getDoctorId());
+        if (doctor == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Doctor not found with id: " + dto.getDoctorId());
+        }
+        if (!doctor.isActive()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Doctor is currently inactive.");
+        }
+
+        // Verify Doctor Availability against TimeOff
+        validateDoctorTimeOff(doctor, start, end);
+
+        // Verify Doctor Weekly Working Hours
+        validateDoctorSchedule(doctor, start, end);
+
         Appointment appointment = Appointment.builder()
                 .patientId(dto.getPatientId())
                 .doctorId(dto.getDoctorId())
                 .startTime(start)
-                .endTime(start.plusMinutes(SLOT_MINUTES))
+                .endTime(end)
                 .reason(dto.getReason())
                 .createdBy(currentUserId)
                 .build();
@@ -135,5 +169,39 @@ public class AppointmentService {
                 appointments.getTotalPages(),
                 appointments.isLast()
         );
+    }
+
+    // Checks if the appointment overlaps with any Doctor's TimeOff period
+    private void validateDoctorTimeOff(DoctorClientDto doctor, LocalDateTime start, LocalDateTime end) {
+        if (doctor.getTimeOff() == null || doctor.getTimeOff().isEmpty()) {
+            return;
+        }
+        Instant appStartInstant = start.atZone(ZoneId.systemDefault()).toInstant();
+        Instant appEndInstant = end.atZone(ZoneId.systemDefault()).toInstant();
+        boolean hasTimeOffConflict = doctor.getTimeOff().stream().anyMatch(timeOff ->
+                timeOff.getFrom() != null && timeOff.getTo() != null &&
+                        appStartInstant.isBefore(timeOff.getTo()) && appEndInstant.isAfter(timeOff.getFrom())
+        );
+        if (hasTimeOffConflict) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Doctor is on leave/time-off during this requested time slot.");
+        }
+    }
+
+    // Checks if the requested appointment falls within doctor's configured weekly schedule slots
+    private void validateDoctorSchedule(DoctorClientDto doctor, LocalDateTime start, LocalDateTime end) {
+        if (doctor.getSchedule() == null || doctor.getSchedule().isEmpty()) {
+            return; // Doctor has no restricted schedule configured
+        }
+        boolean fitsInSchedule = doctor.getSchedule().stream().anyMatch(slot ->
+                slot.getDayOfWeek() == start.getDayOfWeek() &&
+                        !start.toLocalTime().isBefore(slot.getStart()) &&
+                        !end.toLocalTime().isAfter(slot.getEnd())
+        );
+        if (!fitsInSchedule) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Doctor does not have available working hours for " + start.getDayOfWeek() +
+                            " at " + start.toLocalTime());
+        }
     }
 }
