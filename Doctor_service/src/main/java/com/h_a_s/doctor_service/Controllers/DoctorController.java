@@ -67,4 +67,29 @@ public class DoctorController {
             ) {
         return ResponseEntity.ok().build();
     }
+
+    // add time-off for a doctor
+    @PostMapping("/{id}/time-off")
+    public ResponseEntity<DoctorResponseDto> addTimeOff(
+            @PathVariable Long id,
+            @Valid @RequestBody TimeOffRequestDto timeOffRequestDto,
+            Principal principal
+    ) {
+        return ResponseEntity.ok(doctorService.addTimeOff(id, timeOffRequestDto, principal));
+    }
+
+    // deactivate a doctor and cancel scheduled appointments
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<DoctorResponseDto> deactivateDoctor(
+            @PathVariable Long id,
+            Principal principal
+    ) {
+        return ResponseEntity.ok(doctorService.deactivateDoctor(id, principal));
+    }
+
+    // activate a doctor
+    @PatchMapping("/{id}/activate")
+    public ResponseEntity<DoctorResponseDto> activateDoctor(@PathVariable Long id) {
+        return ResponseEntity.ok(doctorService.activateDoctor(id));
+    }
 }
