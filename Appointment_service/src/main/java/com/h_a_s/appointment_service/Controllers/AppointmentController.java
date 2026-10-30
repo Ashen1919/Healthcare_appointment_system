@@ -95,4 +95,11 @@ public class AppointmentController {
     public ResponseEntity<AppointmentResponseDto> markNoShow(@PathVariable Long id) {
         return ResponseEntity.ok(appointmentService.markNoShow(id));
     }
+
+    // cancel all scheduled appointments of a doctor (e.g. when deactivated)
+    @PatchMapping("/doctor/{doctorId}/cancel-scheduled")
+    public ResponseEntity<Void> cancelScheduledAppointmentsByDoctor(@PathVariable Long doctorId) {
+        appointmentService.cancelScheduledAppointmentsByDoctor(doctorId);
+        return ResponseEntity.ok().build();
+    }
 }
