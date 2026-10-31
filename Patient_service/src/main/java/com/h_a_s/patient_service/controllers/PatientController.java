@@ -65,4 +65,46 @@ public class PatientController {
         patientService.updatePassword(updatePasswordDto.getOldPassword(), updatePasswordDto.getNewPassword(), principal);
         return ResponseEntity.ok().build();
     }
+
+    // deactivate a patient and cancel their scheduled appointments
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<PatientResponseDto> deactivatePatient(
+            @PathVariable Long id,
+            Principal principal
+    ) {
+        return ResponseEntity.ok(patientService.deactivatePatient(id, principal));
+    }
+
+    // activate a patient
+    @PatchMapping("/{id}/activate")
+    public ResponseEntity<PatientResponseDto> activatePatient(@PathVariable Long id) {
+        return ResponseEntity.ok(patientService.activatePatient(id));
+    }
+
+    // get aggregated history of a patient (appointments & consultation notes)
+    @GetMapping("/{id}/history")
+    public ResponseEntity<PatientHistoryResponseDto> getPatientHistory(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int appointmentPage,
+            @RequestParam(defaultValue = "10") int appointmentSize,
+            @RequestParam(defaultValue = "0") int notePage,
+            @RequestParam(defaultValue = "10") int noteSize,
+            Principal principal
+    ) {
+        return ResponseEntity.ok(patientService.getPatientHistory(
+                id, appointmentPage, appointmentSize, notePage, noteSize, principal));
+    }
+
+    // get aggregated history of currently logged-in patient
+    @GetMapping("/me/history")
+    public ResponseEntity<PatientHistoryResponseDto> getCurrentPatientHistory(
+            @RequestParam(defaultValue = "0") int appointmentPage,
+            @RequestParam(defaultValue = "10") int appointmentSize,
+            @RequestParam(defaultValue = "0") int notePage,
+            @RequestParam(defaultValue = "10") int noteSize,
+            Principal principal
+    ) {
+        return ResponseEntity.ok(patientService.getCurrentPatientHistory(
+                principal, appointmentPage, appointmentSize, notePage, noteSize));
+    }
 }
