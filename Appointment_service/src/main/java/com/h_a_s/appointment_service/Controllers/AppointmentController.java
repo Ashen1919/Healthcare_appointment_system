@@ -102,4 +102,11 @@ public class AppointmentController {
         appointmentService.cancelScheduledAppointmentsByDoctor(doctorId);
         return ResponseEntity.ok().build();
     }
+
+    // cancel all scheduled appointments of a patient (e.g. when deactivated)
+    @PatchMapping("/patient/{patientId}/cancel-scheduled")
+    public ResponseEntity<Void> cancelScheduledAppointmentsByPatient(@PathVariable Long patientId) {
+        appointmentService.cancelScheduledAppointmentsByPatient(patientId);
+        return ResponseEntity.ok().build();
+    }
 }

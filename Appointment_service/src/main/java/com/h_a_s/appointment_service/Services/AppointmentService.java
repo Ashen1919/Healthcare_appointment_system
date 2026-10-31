@@ -147,6 +147,16 @@ public class AppointmentService {
         return scheduledAppointments.size();
     }
 
+    // Cancel all SCHEDULED appointments for a patient (e.g. when deactivated)
+    public int cancelScheduledAppointmentsByPatient(Long patientId) {
+        List<Appointment> scheduledAppointments = appointmentRepo.findByPatientIdAndStatus(patientId, Status.SCHEDULED);
+        for (Appointment appointment : scheduledAppointments) {
+            appointment.setStatus(Status.CANCELLED);
+        }
+        appointmentRepo.saveAll(scheduledAppointments);
+        return scheduledAppointments.size();
+    }
+
     private AppointmentResponseDto changeStatus(Long id, Status newStatus) {
         Appointment appointment = findAppointment(id);
 
