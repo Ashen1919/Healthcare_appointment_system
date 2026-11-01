@@ -55,17 +55,6 @@ public class PatientController {
         return ResponseEntity.ok(patientService.updatePatient(updatePatientRequestDto, principal));
     }
 
-    // update patient's password
-    @PatchMapping("/password")
-    public ResponseEntity<Void> updatePassword(
-            @Valid
-            @RequestBody UpdatePasswordDto updatePasswordDto,
-            Principal principal
-            ) {
-        patientService.updatePassword(updatePasswordDto.getOldPassword(), updatePasswordDto.getNewPassword(), principal);
-        return ResponseEntity.ok().build();
-    }
-
     // deactivate a patient and cancel their scheduled appointments
     @PatchMapping("/{id}/deactivate")
     public ResponseEntity<PatientResponseDto> deactivatePatient(
