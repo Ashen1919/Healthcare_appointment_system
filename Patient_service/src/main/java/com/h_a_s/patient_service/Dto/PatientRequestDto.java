@@ -15,13 +15,13 @@ public class PatientRequestDto {
     @Email(message = "Please enter a valid email.")
     private String email;
 
-    @NotBlank(message = "Password is required!")
-    @Size(min = 8, max = 30, message = "Password must be between 8 and 30 characters.")
-    @Pattern(
-            regexp = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[@#$%^&+=!]).{8,30}$",
-            message = "Password must contain uppercase, digit, and special character(@, #, $, %, ^)"
-    )
-    private String password;
+//    @NotBlank(message = "Password is required!")
+//    @Size(min = 8, max = 30, message = "Password must be between 8 and 30 characters.")
+//    @Pattern(
+//            regexp = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[@#$%^&+=!]).{8,30}$",
+//            message = "Password must contain uppercase, digit, and special character(@, #, $, %, ^)"
+//    )
+//    private String password;
 
     @NotBlank(message = "Name is required!")
     @Size(min = 3, max = 15, message = "Name must be between 3 and 15 characters")

@@ -28,8 +28,6 @@ public class Doctor {
 
     private String email;
 
-    private String password;
-
     private String name;
 
     @Indexed

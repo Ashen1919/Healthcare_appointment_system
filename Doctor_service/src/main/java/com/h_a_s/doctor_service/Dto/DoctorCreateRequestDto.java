@@ -24,14 +24,6 @@ public class DoctorCreateRequestDto {
     @Email(message = "Please enter a valid email address!")
     private String email;
 
-    @NotBlank(message = "Password is required!")
-    @Size(min = 8, max = 30, message = "Password must be between 8 and 30 characters.")
-    @Pattern(
-            regexp = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[@#$%^&+=!]).{8,30}$",
-            message = "Password must contain uppercase, digit, and special character(@, #, $, %, ^)"
-    )
-    private String password;
-
     @NotBlank(message = "Name is required!")
     @Size(min = 3, max = 50, message = "Name should contain minimum 3 and maximum 50 characters.")
     @Pattern(

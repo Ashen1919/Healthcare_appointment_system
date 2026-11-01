@@ -20,11 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -36,14 +32,12 @@ import java.util.List;
 public class PatientService {
     private final PatientRepo patientRepo;
     private final ModelMapper modelMapper;
-    private final PasswordEncoder passwordEncoder;
     private final AppointmentClient appointmentClient;
     private final DoctorClient doctorClient;
 
     // create patient
     public PatientResponseDto createPatient(PatientRequestDto patientRequestDto) {
         Patient patient = modelMapper.map(patientRequestDto, Patient.class);
-        patient.setPassword(passwordEncoder.encode(patientRequestDto.getPassword()));
         patient.setRole(Roles.PATIENT);
         patient.setActive(true);
         Patient savePatient = patientRepo.save(patient);
@@ -81,7 +75,7 @@ public class PatientService {
     public PatientResponseDto getCurrentPatientDetails(Principal principal) {
         Long patientId = Long.valueOf(principal.getName());
         Patient currentPatient = patientRepo.findById(patientId)
-                .orElseThrow(() -> new UsernameNotFoundException("Patient Not found with id " + patientId));
+                .orElseThrow(() -> new ResourceNotFoundException("Patient Not found with id " + patientId));
 
         return modelMapper.map(currentPatient, PatientResponseDto.class);
     }
@@ -90,7 +84,7 @@ public class PatientService {
     public PatientResponseDto updatePatient(UpdatePatientRequestDto updatePatientRequestDto, Principal principal) {
         Long patientID = Long.valueOf(principal.getName());
         Patient existingPatient = patientRepo.findById(patientID)
-                .orElseThrow(() -> new UsernameNotFoundException("Patient not found with the id " + patientID));
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not found with the id " + patientID));
 
         existingPatient.setAddress(updatePatientRequestDto.getAddress());
         existingPatient.setContact(updatePatientRequestDto.getContact());
@@ -100,21 +94,6 @@ public class PatientService {
 
         Patient updatePatient = patientRepo.save(existingPatient);
         return modelMapper.map(updatePatient, PatientResponseDto.class);
-    }
-
-    // update patient's password
-    public void updatePassword(String oldPassword, String newPassword, Principal principal) {
-        Long patientID = Long.valueOf(principal.getName());
-        Patient existingPatient = patientRepo.findById(patientID)
-                .orElseThrow(() -> new UsernameNotFoundException("Patient not found with the id " + patientID));
-
-        if (!passwordEncoder.matches(oldPassword, existingPatient.getPassword())) {
-            throw new RuntimeException("Old Password is incorrect");
-        }
-
-        existingPatient.setPassword(passwordEncoder.encode(newPassword));
-        existingPatient.setUpdated_at(LocalDateTime.now());
-        patientRepo.save(existingPatient);
     }
 
     // Deactivate patient and cancel all their SCHEDULED appointments in Appointment Service

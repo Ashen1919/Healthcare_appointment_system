@@ -58,16 +58,6 @@ public class DoctorController {
         return ResponseEntity.ok(doctorService.updateDoctor(doctorUpdateRequestDto, principal));
     }
 
-    // update password
-    @PatchMapping("/password")
-    public ResponseEntity<Void> updatePassword(
-            @Valid
-            @RequestBody UpdatePasswordDto updatePasswordDto,
-            Principal principal
-            ) {
-        return ResponseEntity.ok().build();
-    }
-
     // add time-off for a doctor
     @PostMapping("/{id}/time-off")
     public ResponseEntity<DoctorResponseDto> addTimeOff(

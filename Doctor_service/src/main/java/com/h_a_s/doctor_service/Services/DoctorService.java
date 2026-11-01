@@ -16,7 +16,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -35,7 +34,6 @@ public class DoctorService {
     private final DoctorRepo doctorRepo;
     private final ModelMapper modelMapper;
     private final DoctorIdGenerator doctorIdGenerator;
-    private final PasswordEncoder passwordEncoder;
     private final AppointmentClient appointmentClient;
 
     // Create a doctor
@@ -47,7 +45,6 @@ public class DoctorService {
         Doctor doctor = modelMapper.map(requestDto, Doctor.class);
         doctor.setId(doctorIdGenerator.nextId());
         doctor.setActive(true);
-        doctor.setPassword(passwordEncoder.encode(requestDto.getPassword()));
         Doctor saveDoctor = doctorRepo.insert(doctor);
         return modelMapper.map(saveDoctor, DoctorResponseDto.class);
     }
@@ -171,20 +168,6 @@ public class DoctorService {
         doctor.setActive(true);
         Doctor saved = doctorRepo.save(doctor);
         return modelMapper.map(saved, DoctorResponseDto.class);
-    }
-
-    // update doctor's password
-    public void updateDoctorPassword(String OldPassword, String NewPassword, Principal principal) {
-        Long doctorId = Long.valueOf(principal.getName());
-        Doctor currentDoctor = doctorRepo.findById(doctorId).orElseThrow(() ->
-                new ResourceNotFoundException("Doctor not found with the id " + doctorId));
-
-        if (!passwordEncoder.matches(OldPassword, currentDoctor.getPassword())) {
-            throw new RuntimeException("Old Password is incorrect");
-        }
-
-        currentDoctor.setPassword(passwordEncoder.encode(NewPassword));
-        doctorRepo.save(currentDoctor);
     }
 
     /**
