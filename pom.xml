@@ -14,7 +14,7 @@
   <name>Archetype - Healthcare_appointment_system</name>
   <url>http://maven.apache.org</url>
   <modules>
-    <module>Auth_service</module>
+    <module>API-Gateway</module>
     <module>Patient_service</module>
     <module>Doctor_service</module>
     <module>Appointment_service</module>
@@ -63,4 +63,18 @@
       </plugin>
     </plugins>
   </build>
+  <dependencyManagement>
+    <dependencies>
+
+      <!-- Jackson security update -->
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>3.1.8</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
 </project>
