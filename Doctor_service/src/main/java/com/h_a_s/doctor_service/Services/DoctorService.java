@@ -11,6 +11,8 @@ import com.h_a_s.doctor_service.Model.Doctor;
 import com.h_a_s.doctor_service.Repository.DoctorRepo;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +39,7 @@ public class DoctorService {
     private final AppointmentClient appointmentClient;
 
     // Create a doctor
+    @CacheEvict(value = "doctor", allEntries = true)
     public DoctorResponseDto createDoctor(DoctorCreateRequestDto requestDto) {
         if (doctorRepo.existsByEmail(requestDto.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Doctor is already exist.");
@@ -50,6 +53,7 @@ public class DoctorService {
     }
 
     // get all doctors details
+    @Cacheable(value = "doctor", key = "'all'")
     public PageResponseDto<DoctorResponseDto> getAllDoctors(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         Page<Doctor> doctors = doctorRepo.findAll(pageable);
@@ -70,6 +74,7 @@ public class DoctorService {
     }
 
     // get a doctor by ID
+    @Cacheable(value = "doctor", key = "'all'")
     public DoctorResponseDto getDoctorById(Long id) {
         Doctor doctor = doctorRepo.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Doctor not found with the id " + id));
@@ -78,6 +83,7 @@ public class DoctorService {
     }
 
     // get current logged in doctor details
+    @Cacheable(value = "doctor", key = "'all'")
     public DoctorResponseDto currentDoctor(Principal principal) {
         Long doctorId = Long.valueOf(principal.getName());
         Doctor currentDoctor = doctorRepo.findById(doctorId).orElseThrow(() ->
@@ -87,6 +93,7 @@ public class DoctorService {
     }
 
     // update a doctor
+    @CacheEvict(value = "doctor", allEntries = true)
     public DoctorResponseDto updateDoctor(DoctorUpdateRequestDto doctorUpdateRequestDto, Principal principal) {
         Long doctorId = Long.valueOf(principal.getName());
         Doctor currentDoctor = doctorRepo.findById(doctorId).orElseThrow(() ->
@@ -111,6 +118,7 @@ public class DoctorService {
     }
 
     // Add time-off for a doctor with validation against scheduled appointments
+    @CacheEvict(value = "doctor", allEntries = true)
     public DoctorResponseDto addTimeOff(Long doctorId, TimeOffRequestDto requestDto, Principal principal) {
         if (principal != null && principal.getName() != null) {
             Long currentDoctorId = Long.valueOf(principal.getName());
@@ -136,6 +144,7 @@ public class DoctorService {
     }
 
     // Deactivate doctor and cancel all their SCHEDULED appointments in Appointment Service
+    @CacheEvict(value = "doctor", allEntries = true)
     public DoctorResponseDto deactivateDoctor(Long id, Principal principal) {
         if (principal != null && principal.getName() != null) {
             Long currentDoctorId = Long.valueOf(principal.getName());
@@ -161,6 +170,7 @@ public class DoctorService {
     }
 
     // Activate a doctor
+    @CacheEvict(value = "doctor", allEntries = true)
     public DoctorResponseDto activateDoctor(Long id) {
         Doctor doctor = doctorRepo.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Doctor not found with the id " + id));
