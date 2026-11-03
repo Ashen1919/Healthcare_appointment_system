@@ -16,6 +16,8 @@ import com.h_a_s.patient_service.model.Roles;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +38,7 @@ public class PatientService {
     private final DoctorClient doctorClient;
 
     // create patient
+    @CacheEvict(value = "patients", allEntries = true)
     public PatientResponseDto createPatient(PatientRequestDto patientRequestDto) {
         Patient patient = modelMapper.map(patientRequestDto, Patient.class);
         patient.setRole(Roles.PATIENT);
@@ -45,6 +48,7 @@ public class PatientService {
     }
 
     // get all patients
+    @Cacheable(value = "patients", key = "'all'")
     public PageResponseDto<PatientResponseDto> getAllPatients(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         Page<Patient> patients = patientRepo.findAll(pageable);
@@ -65,6 +69,7 @@ public class PatientService {
     }
 
     // get specific patient details
+    @Cacheable(value = "patients", key = "'all'")
     public PatientResponseDto getPatientById(Long id) {
         Patient existingPatient = patientRepo.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Patient can't find with id: " + id));
@@ -72,6 +77,7 @@ public class PatientService {
     }
 
     // get logged in patient's details
+    @Cacheable(value = "patients", key = "'all'")
     public PatientResponseDto getCurrentPatientDetails(Principal principal) {
         Long patientId = Long.valueOf(principal.getName());
         Patient currentPatient = patientRepo.findById(patientId)
@@ -81,6 +87,7 @@ public class PatientService {
     }
 
     // update a patient
+    @CacheEvict(value = "patients", allEntries = true)
     public PatientResponseDto updatePatient(UpdatePatientRequestDto updatePatientRequestDto, Principal principal) {
         Long patientID = Long.valueOf(principal.getName());
         Patient existingPatient = patientRepo.findById(patientID)
@@ -97,6 +104,7 @@ public class PatientService {
     }
 
     // Deactivate patient and cancel all their SCHEDULED appointments in Appointment Service
+    @CacheEvict(value = "patients", allEntries = true)
     public PatientResponseDto deactivatePatient(Long id, Principal principal) {
         if (principal != null && principal.getName() != null) {
             Long currentPatientId = Long.valueOf(principal.getName());
@@ -122,6 +130,7 @@ public class PatientService {
     }
 
     // Activate a patient
+    @CacheEvict(value = "patients", allEntries = true)
     public PatientResponseDto activatePatient(Long id) {
         Patient patient = patientRepo.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Patient can't find with id: " + id));
@@ -133,6 +142,7 @@ public class PatientService {
     }
 
     // Get aggregated patient history (Appointments & Consultation Notes)
+    @Cacheable(value = "patients", key = "'all'")
     public PatientHistoryResponseDto getPatientHistory(Long id, int appointmentPage, int appointmentSize,
                                                        int notePage, int noteSize, Principal principal) {
         if (principal != null && principal.getName() != null) {
@@ -163,6 +173,7 @@ public class PatientService {
     }
 
     // Get current logged-in patient's history
+    @Cacheable(value = "patients", key = "'all'")
     public PatientHistoryResponseDto getCurrentPatientHistory(Principal principal,
                                                               int appointmentPage, int appointmentSize,
                                                               int notePage, int noteSize) {

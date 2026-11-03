@@ -14,6 +14,8 @@ import com.h_a_s.appointment_service.Repository.AppointmentRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,6 +42,7 @@ public class AppointmentService {
     private static final int SLOT_MINUTES = 30;
 
     // create appointment
+    @CacheEvict(value = "appointment", allEntries = true)
     public AppointmentResponseDto createAppointment(AppointmentCreationDto dto, Principal principal) {
         Long currentUserId = Long.valueOf(principal.getName());
 
@@ -93,29 +96,34 @@ public class AppointmentService {
     }
 
     // get all appointments
+    @Cacheable(value = "appointment", key = "'all'")
     public PageResponseDto<AppointmentResponseDto> getAllAppointments(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         return toPageResponse(appointmentRepo.findAll(pageable));
     }
 
     // get specific appointment
+    @Cacheable(value = "appointment", key = "'all'")
     public AppointmentResponseDto getAppointmentById(Long id) {
         return modelMapper.map(findAppointment(id), AppointmentResponseDto.class);
     }
 
     // get appointments of a patient
+    @Cacheable(value = "appointment", key = "'all'")
     public PageResponseDto<AppointmentResponseDto> getAppointmentsByPatient(Long patientId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("startTime").descending());
         return toPageResponse(appointmentRepo.findByPatientId(patientId, pageable));
     }
 
     // get appointments of a doctor
+    @Cacheable(value = "appointment", key = "'all'")
     public PageResponseDto<AppointmentResponseDto> getAppointmentsByDoctor(Long doctorId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("startTime").descending());
         return toPageResponse(appointmentRepo.findByDoctorId(doctorId, pageable));
     }
 
     // get booked (SCHEDULED) start times of a doctor in a range, used for availability calculation
+    @Cacheable(value = "appointment", key = "'all'")
     public List<LocalDateTime> getBookedStartTimes(Long doctorId, LocalDateTime from, LocalDateTime to) {
         return appointmentRepo
                 .findByDoctorIdAndStatusAndStartTimeBetween(doctorId, Status.SCHEDULED, from, to)
@@ -125,19 +133,23 @@ public class AppointmentService {
     }
 
     // status changes
+    @CacheEvict(value = "appointment", allEntries = true)
     public AppointmentResponseDto cancelAppointment(Long id) {
         return changeStatus(id, Status.CANCELLED);
     }
 
+    @CacheEvict(value = "appointment", allEntries = true)
     public AppointmentResponseDto completeAppointment(Long id) {
         return changeStatus(id, Status.COMPLETED);
     }
 
+    @CacheEvict(value = "appointment", allEntries = true)
     public AppointmentResponseDto markNoShow(Long id) {
         return changeStatus(id, Status.NO_SHOW);
     }
 
     // Cancel all SCHEDULED appointments for a doctor (e.g. when deactivated)
+    @CacheEvict(value = "appointment", allEntries = true)
     public int cancelScheduledAppointmentsByDoctor(Long doctorId) {
         List<Appointment> scheduledAppointments = appointmentRepo.findByDoctorIdAndStatus(doctorId, Status.SCHEDULED);
         for (Appointment appointment : scheduledAppointments) {
@@ -148,6 +160,7 @@ public class AppointmentService {
     }
 
     // Cancel all SCHEDULED appointments for a patient (e.g. when deactivated)
+    @CacheEvict(value = "appointment", allEntries = true)
     public int cancelScheduledAppointmentsByPatient(Long patientId) {
         List<Appointment> scheduledAppointments = appointmentRepo.findByPatientIdAndStatus(patientId, Status.SCHEDULED);
         for (Appointment appointment : scheduledAppointments) {

@@ -9,6 +9,8 @@ import com.h_a_s.doctor_service.Model.ConsultationNote;
 import com.h_a_s.doctor_service.Repository.ConsultationNoteRepo;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +34,7 @@ public class ConsultationNoteService {
     private final ModelMapper modelMapper;
 
     // Create consultation note
+    @CacheEvict(value = "consultation_notes", allEntries = true)
     public ConsultationNoteResponseDto createNote(ConsultationNoteCreateRequestDto requestDto, Principal principal) {
         // If caller is authenticated, verify doctor identity
         if (principal != null && principal.getName() != null) {
@@ -100,6 +103,7 @@ public class ConsultationNoteService {
     }
 
     // Get consultation note by ID
+    @Cacheable(value = "consultation_notes", key = "'all'")
     public ConsultationNoteResponseDto getNoteById(Long id) {
         ConsultationNote note = consultationNoteRepo.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Consultation note not found with id: " + id));
@@ -108,6 +112,7 @@ public class ConsultationNoteService {
     }
 
     // Get consultation note by appointment ID
+    @Cacheable(value = "consultation_notes", key = "'all'")
     public ConsultationNoteResponseDto getNoteByAppointmentId(Long appointmentId) {
         ConsultationNote note = consultationNoteRepo.findByAppointmentId(appointmentId).orElseThrow(() ->
                 new ResourceNotFoundException("Consultation note not found for appointment id: " + appointmentId));
@@ -116,6 +121,7 @@ public class ConsultationNoteService {
     }
 
     // Get all consultation notes of a patient
+    @Cacheable(value = "consultation_notes", key = "'all'")
     public PageResponseDto<ConsultationNoteResponseDto> getNotesByPatient(Long patientId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         Page<ConsultationNote> notes = consultationNoteRepo.findByPatientId(patientId, pageable);
@@ -124,6 +130,7 @@ public class ConsultationNoteService {
     }
 
     // Get all consultation notes created by a doctor
+    @Cacheable(value = "consultation_notes", key = "'all'")
     public PageResponseDto<ConsultationNoteResponseDto> getNotesByDoctor(Long doctorId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         Page<ConsultationNote> notes = consultationNoteRepo.findByDoctorId(doctorId, pageable);
@@ -132,6 +139,7 @@ public class ConsultationNoteService {
     }
 
     // Update consultation note
+    @CacheEvict(value = "consultation_notes", allEntries = true)
     public ConsultationNoteResponseDto updateNote(Long id, ConsultationNoteUpdateRequestDto requestDto, Principal principal) {
         ConsultationNote note = consultationNoteRepo.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Consultation note not found with id: " + id));
