@@ -26,7 +26,7 @@ public class RouteConfig {
     @Bean
     public RouterFunction<ServerResponse> AppointmentServiceRoute() {
         return GatewayRouterFunctions.route("appointment-service")
-                .route(RequestPredicates.path("/api/v1/appointments"), HandlerFunctions.http())
+                .route(RequestPredicates.path("/api/v1/appointments/**"), HandlerFunctions.http())
                 .before(uri(appointmentServiceUrl))
                 .build();
     }
@@ -34,7 +34,7 @@ public class RouteConfig {
     @Bean
     public RouterFunction<ServerResponse> DoctorServiceRoute() {
         return GatewayRouterFunctions.route("doctor-service")
-                .route(RequestPredicates.path("/api/v1/doctors"), HandlerFunctions.http())
+                .route(RequestPredicates.path("/api/v1/doctors/**"), HandlerFunctions.http())
                 .before(uri(doctorServiceUrl))
                 .build();
     }
@@ -42,7 +42,7 @@ public class RouteConfig {
     @Bean
     public RouterFunction<ServerResponse> PatientServiceRoute() {
         return GatewayRouterFunctions.route("patient-service")
-                .route(RequestPredicates.path("/api/v1/patients"), HandlerFunctions.http())
+                .route(RequestPredicates.path("/api/v1/patients/**"), HandlerFunctions.http())
                 .before(uri(patientServiceUrl))
                 .build();
     }
