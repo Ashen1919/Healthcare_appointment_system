@@ -12,13 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DoctorCreateRequestDto {
-    @NotBlank(message = "Id is required!")
-    @Size(min = 2, max = 8, message = "ID should be between 2 and 8 characters")
-    @Pattern(
-            regexp = "^[0-9]+$",
-            message = "Id should contain numbers only."
-    )
-    private Long id;
 
     @NotBlank(message = "Email is required!")
     @Email(message = "Please enter a valid email address!")

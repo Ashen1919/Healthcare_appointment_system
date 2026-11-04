@@ -22,7 +22,7 @@ public class AuthModel {
     private String email;
 
     @Column(name = "password_hash", nullable = false, length = 100)
-    private int password;
+    private String password;
 
     @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
