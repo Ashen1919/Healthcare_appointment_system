@@ -148,10 +148,6 @@ public class DoctorService {
     public DoctorResponseDto deactivateDoctor(Long id, Principal principal) {
         if (principal != null && principal.getName() != null) {
             Long currentDoctorId = Long.valueOf(principal.getName());
-            // Doctor deactivating themselves, or administrative action
-            if (!currentDoctorId.equals(id)) {
-                // If needed, check admin role, or permit admin
-            }
         }
 
         Doctor doctor = doctorRepo.findById(id).orElseThrow(() ->

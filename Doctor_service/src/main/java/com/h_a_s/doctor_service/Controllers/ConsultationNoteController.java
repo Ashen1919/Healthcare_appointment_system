@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -21,8 +22,9 @@ import java.security.Principal;
 public class ConsultationNoteController {
     private final ConsultationNoteService consultationNoteService;
 
-    // Create a consultation note
+    // Create a consultation note (Doctor only)
     @PostMapping
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<ConsultationNoteResponseDto> createConsultationNote(
             @Valid @RequestBody ConsultationNoteCreateRequestDto requestDto,
             Principal principal
@@ -31,20 +33,23 @@ public class ConsultationNoteController {
                 .body(consultationNoteService.createNote(requestDto, principal));
     }
 
-    // Get consultation note by ID
+    // Get consultation note by ID (Admin or Doctor)
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DOCTOR')")
     public ResponseEntity<ConsultationNoteResponseDto> getNoteById(@PathVariable Long id) {
         return ResponseEntity.ok(consultationNoteService.getNoteById(id));
     }
 
-    // Get consultation note by appointment ID
+    // Get consultation note by appointment ID (Admin or Doctor)
     @GetMapping("/appointment/{appointmentId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DOCTOR')")
     public ResponseEntity<ConsultationNoteResponseDto> getNoteByAppointmentId(@PathVariable Long appointmentId) {
         return ResponseEntity.ok(consultationNoteService.getNoteByAppointmentId(appointmentId));
     }
 
-    // Get consultation notes by patient ID
+    // Get consultation notes by patient ID (Admin, Doctor, or the Patient themselves)
     @GetMapping("/patient/{patientId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DOCTOR') or (hasAuthority('PATIENT') and #patientId.toString() == authentication.name)")
     public ResponseEntity<PageResponseDto<ConsultationNoteResponseDto>> getNotesByPatient(
             @PathVariable Long patientId,
             @RequestParam(defaultValue = "0") int page,
@@ -53,8 +58,9 @@ public class ConsultationNoteController {
         return ResponseEntity.ok(consultationNoteService.getNotesByPatient(patientId, page, size));
     }
 
-    // Get consultation notes by doctor ID
+    // Get consultation notes by doctor ID (Admin or the Doctor themselves)
     @GetMapping("/doctor/{doctorId}")
+    @PreAuthorize("hasAuthority('ADMIN') or (hasAuthority('DOCTOR') and #doctorId.toString() == authentication.name)")
     public ResponseEntity<PageResponseDto<ConsultationNoteResponseDto>> getNotesByDoctor(
             @PathVariable Long doctorId,
             @RequestParam(defaultValue = "0") int page,
@@ -63,8 +69,9 @@ public class ConsultationNoteController {
         return ResponseEntity.ok(consultationNoteService.getNotesByDoctor(doctorId, page, size));
     }
 
-    // Update consultation note
+    // Update consultation note (Doctor only)
     @PatchMapping("/{id}")
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<ConsultationNoteResponseDto> updateConsultationNote(
             @PathVariable Long id,
             @Valid @RequestBody ConsultationNoteUpdateRequestDto requestDto,
