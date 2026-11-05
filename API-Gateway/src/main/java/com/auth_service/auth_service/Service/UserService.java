@@ -14,6 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.Principal;
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -83,4 +86,47 @@ public class UserService {
         AuthModel savedUser = userRepository.save(authModel);
         return modelMapper.map(savedUser, UserResponseDto.class);
     }
+
+    // Update Password for currently logged-in user
+    public UserResponseDto updatePassword(UpdatePasswordRequestDto dto, Principal principal) {
+        if (principal == null || principal.getName() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
+        }
+
+        // Validate that new password matches confirm password
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password and confirm password do not match");
+        }
+
+        // Find user by principal (supports either email or numeric user ID)
+        String identifier = principal.getName();
+        AuthModel user = userRepository.findByEmail(identifier)
+                .or(() -> {
+                    try {
+                        return userRepository.findById(Long.valueOf(identifier));
+                    } catch (NumberFormatException e) {
+                        return Optional.empty();
+                    }
+                })
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // Verify old password
+        if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current password does not match");
+        }
+
+        // Prevent setting the exact same password
+        if (passwordEncoder.matches(dto.getNewPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password cannot be the same as old password");
+        }
+
+        // Update password and mark password changed flag
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        user.set_password_changed(true);
+
+        AuthModel updatedUser = userRepository.save(user);
+        return modelMapper.map(updatedUser, UserResponseDto.class);
+    }
+
+
 }

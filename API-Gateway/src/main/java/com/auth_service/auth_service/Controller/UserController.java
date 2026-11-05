@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api/v1/auth/users")
 @RequiredArgsConstructor
@@ -32,5 +34,14 @@ public class UserController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<UserResponseDto> createDoctor(@Valid @RequestBody DoctorUserCreateRequestDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createDoctor(dto));
+    }
+
+    @PatchMapping("/password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserResponseDto> updatePassword(
+            @Valid @RequestBody UpdatePasswordRequestDto dto,
+            Principal principal
+    ) {
+        return ResponseEntity.ok(userService.updatePassword(dto, principal));
     }
 }
